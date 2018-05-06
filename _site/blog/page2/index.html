@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>Blog | Joshua</title>
+<meta name="generator" content="Jekyll v3.7.3" />
+<meta property="og:title" content="Blog" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Joshua E’s blog and projects archive" />
+<meta property="og:description" content="Joshua E’s blog and projects archive" />
+<link rel="canonical" href="http://localhost:4000/blog/page2/" />
+<meta property="og:url" content="http://localhost:4000/blog/page2/" />
+<meta property="og:site_name" content="Joshua" />
+<link rel="prev" href="http://localhost:4000/blog/" />
+<script type="application/ld+json">
+{"description":"Joshua E’s blog and projects archive","@type":"WebPage","url":"http://localhost:4000/blog/page2/","headline":"Blog","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1><a href="http://localhost:4000/">Joshua</a></h1>
+        
+        
+
+        <p>Joshua E's blog and projects archive</p>
+
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <!-- This loops through the paginated posts -->
+
+  <h1><a href="/2014/07/21/setting-up-jekyll-in-sinatra.html">Setting Up Jekyll in Sinatra</a></h1>
+  <p class="author">
+    <span class="date">2014-07-21 00:00:00 -0700</span>
+  </p>
+  <div class="content">
+    <p>My main website was built using <a href="http://www.sinatrarb.com/">Sinatra</a>, but I wanted a way to generate and manage content for a blog
+using the popular <a href="http://jekyllrb.com">Jekyll</a> static site generator. First, I did a bit of quick digging and found some
+great tutorials and themes for using Jekyll. I used <a href="http://getpoole.com/">Poole</a> to provide a lot of the boiler plate code behind setting up the blog which included
+some nice styling themes like <a href="https://github.com/poole/lanyon">Lanyon</a>.</p>
+
+<p>However, I had to do some minor tweaking to get Poole and Jekyll integrated within Sinatra. Namely, Sinatra handles most
+portions of the site and routing while I wanted Jekyll to handle the creation and styling of the blog portion. The main
+changes I made were in the default routing of the basic jekyll skeleton. This consisted of changing the appropriate
+routes in layout and in _config.yml to use the /blog/ base url. I also took a brute force route for serving the static
+files by writing a build script that would copy the generated html to the /views directory of my Sinatra app and copy
+the stylesheets to the default /public route that Sinatra checks.</p>
+
+<p>Finally, I had to edit my main.rb file to match the appropriate url requests to the appropriate blog posts. To solve
+that, I wrote a basic method that would grab the path and match it to the appropriate blog post path and copy the html
+files to erb files to have Sinatra render them. I took this approach because I use <a href="https://www.heroku.com/">Heroku</a> to deploy my site and heroku
+does not support the use of <a href="https://devcenter.heroku.com/articles/rack-sendfile">Rack::Sendfile</a>. I <em>believe</em> that
+Sinatra would otherwise need Sendfile to serve html directly which is why I copy the files to the erb format -
+arbitrarily… Easy enough.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">get</span> <span class="s1">'/blog/?*'</span> <span class="k">do</span>
+    <span class="n">get_blog</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="nf">path</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">get_blog</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">path</span><span class="p">.</span><span class="nf">gsub!</span><span class="p">(</span><span class="s1">'/blog'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">"/"</span> <span class="o">+</span> <span class="s1">'index'</span>
+    <span class="k">if</span> <span class="no">File</span><span class="p">.</span><span class="nf">exists?</span><span class="p">(</span><span class="s2">"./views/blog/"</span> <span class="o">+</span> <span class="n">path</span> <span class="o">+</span> <span class="s1">'.html'</span><span class="p">)</span>
+        <span class="n">dir_path</span> <span class="o">=</span> <span class="s2">"./views/blog"</span> <span class="o">+</span> <span class="n">path</span>
+        <span class="no">FileUtils</span><span class="p">.</span><span class="nf">cp</span><span class="p">(</span><span class="n">dir_path</span> <span class="o">+</span> <span class="s1">'.html'</span><span class="p">,</span> <span class="n">dir_path</span> <span class="o">+</span> <span class="s1">'.erb'</span><span class="p">)</span>
+        <span class="n">erb</span> <span class="ss">:"blog/</span><span class="si">#{</span><span class="n">path</span><span class="si">}</span><span class="ss">"</span><span class="p">,</span> <span class="ss">:layout</span> <span class="o">=&gt;</span> <span class="kp">false</span>
+    <span class="k">else</span>
+        <span class="n">erb</span> <span class="ss">:not_found</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+
+  </div>
+
+  <h1><a href="/2014/07/19/whats-jekyll.html">What's Jekyll?</a></h1>
+  <p class="author">
+    <span class="date">2014-07-19 00:00:00 -0700</span>
+  </p>
+  <div class="content">
+    <p><a href="http://jekyllrb.com">Jekyll</a> is a static site generator, an open-source tool for creating simple yet powerful websites of all shapes and sizes. From <a href="https://github.com/mojombo/jekyll/blob/master/README.markdown">the project’s readme</a>:</p>
+
+<blockquote>
+  <p>Jekyll is a simple, blog aware, static site generator. It takes a template directory […] and spits out a complete, static website suitable for serving with Apache or your favorite web server. This is also the engine behind GitHub Pages, which you can use to host your project’s page or blog right here from GitHub.</p>
+</blockquote>
+
+<p>It’s an immensely useful tool and one we encourage you to use here with Hyde.</p>
+
+<p>Find out more by <a href="https://github.com/mojombo/jekyll">visiting the project on GitHub</a>.</p>
+
+  </div>
+
+
+<!-- Pagination links -->
+<div class="pagination">
+  
+    <a href="/blog/" class="previous">Previous</a>
+  
+  <span class="page_number ">Page: 2 of 2</span>
+  
+    <span class="next ">Next</span>
+  
+</div>
+
+
+      </section>
+      <footer>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<title>iOS App Summary | Joshua</title>
+<meta name="generator" content="Jekyll v3.7.3" />
+<meta property="og:title" content="iOS App Summary" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Projects Update I’ve been learning some iOS development through building different apps. So I’ll summarize current status, lessons learned, challenges, and direction forward." />
+<meta property="og:description" content="Projects Update I’ve been learning some iOS development through building different apps. So I’ll summarize current status, lessons learned, challenges, and direction forward." />
+<link rel="canonical" href="http://localhost:4000/2017/01/07/ios-app-summary.html" />
+<meta property="og:url" content="http://localhost:4000/2017/01/07/ios-app-summary.html" />
+<meta property="og:site_name" content="Joshua" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-01-07T00:00:00-08:00" />
+<script type="application/ld+json">
+{"description":"Projects Update I’ve been learning some iOS development through building different apps. So I’ll summarize current status, lessons learned, challenges, and direction forward.","@type":"BlogPosting","url":"http://localhost:4000/2017/01/07/ios-app-summary.html","headline":"iOS App Summary","dateModified":"2017-01-07T00:00:00-08:00","datePublished":"2017-01-07T00:00:00-08:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2017/01/07/ios-app-summary.html"},"@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=">
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1><a href="http://localhost:4000/">Joshua</a></h1>
+        
+        
+
+        <p>Joshua E's blog and projects archive</p>
+
+        
+
+        
+
+        
+      </header>
+      <section>
+
+      <small>7 January 2017</small>
+<h1>iOS App Summary</h1>
+
+<p class="view">by </p>
+
+<h1 id="projects-update">Projects Update</h1>
+<p>I’ve been learning some iOS development through building different apps. So I’ll summarize current status, lessons learned, challenges, and direction forward.</p>
+
+<h1 id="pianopal">PianoPal</h1>
+<p>A piano tool for learning and visualizing scales and chords on a scrollable and listenable keyboard.</p>
+
+<p>Source: <a href="https://github.com/jescriba/pianopal">https://github.com/jescriba/pianopal</a></p>
+
+<h3 id="background">Background</h3>
+<p>I wanted to work on another tool targeted toward beginner piano musicians - namely <em>myself</em> :p When I’m on the go and want to visualize and hear different chords or scales. Ya know, develop an intuition for how a chord/scale name translates to a <em>sound</em> and <em>feeling</em>.</p>
+
+<p><strong>Video of usage</strong></p>
+
+<iframe width="532" height="313" src="https://youtube.com/embed/T1oxFbqeOm0" frameborder="0" allowfullscreen=""></iframe>
+
+<h3 id="basic-principles">Basic Principles</h3>
+
+<p><strong>Setting up infinite scroll UI</strong></p>
+
+<p>For infinite scrolling on the keyboard - I implemented a scroll view with the keys in an octave and set the scroll view’s <code class="highlighter-rouge">contentSizeWidth</code> to be 3x the screen width. The keyboard has an octave on screen (center octave), an octave left off screen, and another octave right off the screen. When the user scrolls to the end of either the left or right octave, the scroll view is recentered creating the illusion of an infinite scroll. Here’s the <a href="https://github.com/jescriba/pianopal/blob/332e413ffe55fb75159807397ede8859e266518a/pianopal/UI/PianoView.swift#L81">snippet</a> showing how this works currently in the <code class="highlighter-rouge">UIScrollViewDelegate</code>:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">scrollViewDidScroll</span><span class="p">(</span><span class="n">_</span> <span class="nv">scrollView</span><span class="p">:</span> <span class="kt">UIScrollView</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">scrollDirection</span><span class="p">:</span> <span class="kt">ScrollDirection</span><span class="p">?</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">lastContentOffset</span> <span class="o">!=</span> <span class="kc">nil</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">contentOffset</span><span class="o">.</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">lastContentOffset</span> <span class="p">{</span>
+            <span class="n">scrollDirection</span> <span class="o">=</span> <span class="kt">ScrollDirection</span><span class="o">.</span><span class="n">rightToLeft</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">scrollDirection</span> <span class="o">=</span> <span class="kt">ScrollDirection</span><span class="o">.</span><span class="n">leftToRight</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">lastContentOffset</span> <span class="o">=</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">contentOffset</span><span class="o">.</span><span class="n">x</span>
+    <span class="k">switch</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">contentOffset</span><span class="o">.</span><span class="n">x</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">scrollView</span><span class="o">.</span><span class="nf">setContentOffset</span><span class="p">(</span><span class="kt">CGPoint</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">),</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span>
+        <span class="nf">updateOctave</span><span class="p">(</span><span class="n">scrollDirection</span><span class="p">)</span>
+        <span class="k">break</span>
+    <span class="k">default</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>Representation of notes, chords, and scales</strong></p>
+
+<p>The <a href="https://github.com/jescriba/pianopal/blob/332e413ffe55fb75159807397ede8859e266518a/pianopal/Models/Note.swift#L11">notes</a> are represented with <code class="highlighter-rouge">enum Note : Int</code> with a few helper methods for getting human-readable descriptions. It’s useful having note inherit from <code class="highlighter-rouge">Int</code> since it allows for some basic math in calculating chords/scales. The <a href="https://github.com/jescriba/pianopal/blob/332e413ffe55fb75159807397ede8859e266518a/pianopal/Models/Chord.swift#L11">chords</a> have an array of notes and a <code class="highlighter-rouge">ChordType</code>. The <code class="highlighter-rouge">ChordType</code> is another enum with the high level chord name i.e. Diminished, Augmented, etc… and a <code class="highlighter-rouge">ChordFormula</code> method:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">chordFormula</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt">Int</span><span class="p">]</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="k">self</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">Major</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">Minor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">Diminished</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">Augmented</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">Sus2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">Sus4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">MajorSeventh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">MinorSeventh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">DominantSeventh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">DiminishedSeventh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+    <span class="k">case</span> <span class="o">.</span><span class="kt">HalfDiminishedSeventh</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Which gives you the intervals for each successive note with respect to the root note. For example, starting with a Cmaj you take the C then 4 semitones up you get the E then the G is 7 semitones up from the root. So adding new chords to the app is just a matter of adding another chord type name and formula. The scales are handled similarly with a <a href="https://github.com/jescriba/pianopal/blob/332e413ffe55fb75159807397ede8859e266518a/pianopal/Models/ScaleType.swift#L11">ScaleType</a>.</p>
+
+<p>Both the <code class="highlighter-rouge">Chord</code> and <code class="highlighter-rouge">Scale</code> types are <code class="highlighter-rouge">NSCoding</code> compliant allowing these values to be easily stored in <code class="highlighter-rouge">UserDefaults</code>. This allows users to save chord and scale progressions.</p>
+
+<p>For details on chord identification from tapped notes see the <a href="https://github.com/jescriba/pianopal/blob/332e413ffe55fb75159807397ede8859e266518a/pianopal/Helpers/ChordIdentifier.swift#L11">ChordIdentifier</a>.</p>
+
+<p><strong>How the audio playback works</strong></p>
+
+<p>The <code class="highlighter-rouge">audio/</code> folder of the source contains numerous notes recorded as mp3s i.e. A1.mp3, B1.mp3, etc…  These notes were recorded on my digital piano with the help of midi for duration and volume consistency. The <code class="highlighter-rouge">NoteOctave</code> model has a function that returns the appropriate url for the audio file in the main bundle that is used by the <code class="highlighter-rouge">AudioEngine</code> to play the file. For example playing a scale:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">file</span> <span class="o">=</span> <span class="k">try</span><span class="p">?</span> <span class="kt">AVAudioFile</span><span class="p">(</span><span class="nv">forReading</span><span class="p">:</span> <span class="n">note</span><span class="o">.</span><span class="nf">url</span><span class="p">()</span> <span class="k">as</span> <span class="kt">URL</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">buffer</span> <span class="o">=</span> <span class="kt">AVAudioPCMBuffer</span><span class="p">(</span><span class="nv">pcmFormat</span><span class="p">:</span> <span class="n">file</span><span class="o">!.</span><span class="n">processingFormat</span><span class="p">,</span> <span class="nv">frameCapacity</span><span class="p">:</span> <span class="kt">AVAudioFrameCount</span><span class="p">(</span><span class="n">file</span><span class="o">!.</span><span class="n">length</span><span class="p">))</span>
+<span class="n">_</span> <span class="o">=</span> <span class="k">try</span><span class="p">?</span> <span class="n">file</span><span class="p">?</span><span class="o">.</span><span class="nf">read</span><span class="p">(</span><span class="nv">into</span><span class="p">:</span> <span class="n">buffer</span><span class="p">)</span>
+<span class="k">var</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="kt">AVAudioNodeCompletionHandler</span><span class="p">?</span>
+<span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">notes</span><span class="o">.</span><span class="n">count</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">{</span>
+    <span class="n">completionHandler</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">?</span><span class="o">.</span><span class="nf">didFinishPlayingNotes</span><span class="p">(</span><span class="n">notes</span><span class="p">)</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">?</span><span class="o">.</span><span class="nf">didFinishPlaying</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">completionHandler</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">?</span><span class="o">.</span><span class="nf">didFinishPlayingNotes</span><span class="p">([</span><span class="n">note</span><span class="p">])</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">delegate</span><span class="p">?</span><span class="o">.</span><span class="nf">didStartPlayingNotes</span><span class="p">([</span><span class="n">notes</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">scalePlayer</span><span class="p">?</span><span class="o">.</span><span class="nf">scheduleBuffer</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span>
+                            <span class="nv">completionHandler</span><span class="p">:</span> <span class="n">completionHandler</span><span class="p">)</span>
+<span class="n">scalePlayer</span><span class="p">?</span><span class="o">.</span><span class="nf">play</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+    <span class="n">delegate</span><span class="p">?</span><span class="o">.</span><span class="nf">didStartPlayingNotes</span><span class="p">([</span><span class="n">note</span><span class="p">])</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here the delegate is used for updating the UI - highlighting the key as the note is being played.</p>
+
+<h3 id="pitfalls-and-improvements">Pitfalls and Improvements</h3>
+
+<ul>
+  <li>Didn’t utilize much Auto-Layout even for basic views which would have saved me from some headache in setting up the UI in code.</li>
+</ul>
+
+<p>Moving forward, I’d love to update the ‘play modes’ so scales could be played in arpeggio and chord progressions can be played for you in sequence or arpeggiated.</p>
+
+<h1 id="synthia">Synthia</h1>
+<p>A rudimentary syntheizer and sequencer.</p>
+
+<p>Source: <a href="https://github.com/jescriba/synthia">https://github.com/jescriba/synthia</a></p>
+
+<h3 id="background-1">Background</h3>
+<p>For my first app, I wanted to get some experience building a creative tool using the <a href="https://developer.apple.com/reference/avfoundation/avaudioengine">AVAudioEngine</a> as a fun way of learning the basics of iOS development.</p>
+
+<p><strong>Note</strong>: This app predates Swift 3 so some of the syntax might look off but you get the idea - if it bugs you feel free to open up a PR. ;)</p>
+
+<p><strong>Video of usage</strong></p>
+
+<iframe width="532" height="313" src="https://www.youtube.com/embed/oTBtwi3UoMk" frameborder="0" allowfullscreen=""></iframe>
+
+<h3 id="basic-principles-1">Basic Principles</h3>
+
+<p><strong>The Sequencer implementation</strong></p>
+
+<p>The sequencer plays audio samples from <a href="https://www.freesound.org">https://www.freesound.org</a>. With the bpm of the sequencer being calculated and passed into an <code class="highlighter-rouge">NSTimer</code>. (See pitfalls for more details)</p>
+
+<p><strong>The Keyboard implementation</strong></p>
+
+<p>The keyboard, more excitingly, plays audio by playing parallel ‘voices’ or oscillators using a <a href="https://en.wikipedia.org/wiki/Circular_buffer">circular buffer</a>. The notes get mapped to a frequency in a dictionary then the value of the wave is calculated and placed in the audio buffer. <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/Voice.swift#L53">Here</a> is starting a note for a voice:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">startNote</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">unitVelocity</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="kt">M_PI</span> <span class="o">/</span> <span class="n">audioFormat</span><span class="o">.</span><span class="n">sampleRate</span>
+    <span class="nf">dispatch_async</span><span class="p">(</span><span class="n">audioQueue</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">sampleTime</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">var</span> <span class="nv">previousKey</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">key</span>
+        <span class="k">while</span> <span class="p">(</span><span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="k">self</span><span class="o">.</span><span class="n">key</span> <span class="o">!=</span> <span class="n">previousKey</span> <span class="p">{</span>
+                <span class="k">self</span><span class="o">.</span><span class="nf">computeScaleBaseFrequenciesForKey</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">key</span><span class="o">!</span><span class="p">)</span>
+                <span class="n">previousKey</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">key</span>
+            <span class="p">}</span>
+            <span class="nf">dispatch_semaphore_wait</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">audioSempahore</span><span class="p">,</span> <span class="kt">DISPATCH_TIME_FOREVER</span><span class="p">)</span>
+            <span class="k">let</span> <span class="nv">targetFrequency</span> <span class="o">=</span> <span class="kt">Float32</span><span class="p">(</span><span class="kt">Double</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">octave</span><span class="o">!</span><span class="p">)</span> <span class="o">*</span> <span class="k">self</span><span class="o">.</span><span class="n">scaleBaseFrequencies</span><span class="o">!</span><span class="p">[</span><span class="k">self</span><span class="o">.</span><span class="n">noteIndex</span><span class="o">!</span><span class="p">])</span>
+            <span class="k">let</span> <span class="nv">audioBuffer</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">audioBuffers</span><span class="p">[</span><span class="k">self</span><span class="o">.</span><span class="n">bufferIndex</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">0</span><span class="o">...</span><span class="kt">Int</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">samplesPerBuffer</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">let</span> <span class="nv">carrierVelocity</span> <span class="o">=</span> <span class="n">targetFrequency</span> <span class="o">*</span> <span class="kt">Float32</span><span class="p">(</span><span class="n">unitVelocity</span><span class="p">)</span>
+                <span class="k">var</span> <span class="nv">sample</span> <span class="o">=</span> <span class="kt">Float32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">var</span> <span class="nv">triangleSample</span> <span class="o">=</span> <span class="kt">Float32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">var</span> <span class="nv">squareSample</span> <span class="o">=</span> <span class="kt">Float32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">var</span> <span class="nv">sineSample</span> <span class="o">=</span> <span class="kt">Float32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                
+                <span class="c1">// WaveTypes</span>
+                <span class="n">triangleSample</span> <span class="o">=</span> <span class="kt">Float32</span><span class="p">(</span><span class="kt">Float</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="kt">M_PI</span><span class="p">)</span> <span class="o">*</span> <span class="nf">asin</span><span class="p">(</span><span class="nf">sin</span><span class="p">(</span><span class="kt">Float</span><span class="p">(</span><span class="kt">M_PI</span><span class="p">)</span> <span class="o">*</span> <span class="kt">Float</span><span class="p">(</span><span class="n">carrierVelocity</span><span class="p">)</span> <span class="o">*</span> <span class="kt">Float</span><span class="p">(</span><span class="n">sampleTime</span><span class="p">))))</span>
+                
+                <span class="n">sineSample</span> <span class="o">=</span> <span class="mi">0</span>
+                
+                <span class="k">var</span> <span class="nv">intermediateVal</span> <span class="o">=</span> <span class="nf">sinf</span><span class="p">(</span><span class="kt">Float</span><span class="p">(</span><span class="n">carrierVelocity</span><span class="p">)</span> <span class="o">*</span> <span class="kt">Float</span><span class="p">(</span><span class="n">sampleTime</span><span class="p">));</span>
+                <span class="c1">// sgn function</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">intermediateVal</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">intermediateVal</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">intermediateVal</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">intermediateVal</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="n">squareSample</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">intermediateVal</span><span class="p">;</span>
+                
+                <span class="n">sample</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">squareWaveRatio</span> <span class="o">*</span> <span class="n">squareSample</span> <span class="o">+</span> <span class="k">self</span><span class="o">.</span><span class="n">triangleWaveRatio</span> <span class="o">*</span> <span class="n">triangleSample</span> <span class="o">+</span> <span class="k">self</span><span class="o">.</span><span class="n">sineWaveRatio</span> <span class="o">*</span> <span class="n">sineSample</span>
+                
+                
+                <span class="n">audioBuffer</span><span class="o">.</span><span class="n">floatChannelData</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample</span>
+                <span class="n">audioBuffer</span><span class="o">.</span><span class="n">floatChannelData</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample</span>
+                <span class="n">sampleTime</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="p">}</span>
+            <span class="n">audioBuffer</span><span class="o">.</span><span class="n">frameLength</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">samplesPerBuffer</span>
+            <span class="k">self</span><span class="o">.</span><span class="n">oscNode</span><span class="o">.</span><span class="nf">scheduleBuffer</span><span class="p">(</span><span class="n">audioBuffer</span><span class="p">,</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="p">{</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Void</span> <span class="k">in</span>
+                <span class="nf">dispatch_semaphore_signal</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">audioSempahore</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="p">})</span>
+            <span class="k">self</span><span class="o">.</span><span class="n">bufferIndex</span> <span class="o">=</span> <span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">bufferIndex</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="k">self</span><span class="o">.</span><span class="n">audioBuffers</span><span class="o">.</span><span class="n">count</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>Circular buffer, audio buffer, <code class="highlighter-rouge">audioSempahore</code>, <code class="highlighter-rouge">dispatch_sempahore_wait</code>, wuhhh?</strong></p>
+
+<p>A little more detail in the audio format and setup:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">audioFormat</span> <span class="o">=</span> <span class="kt">AVAudioFormat</span><span class="p">(</span><span class="nv">standardFormatWithSampleRate</span><span class="p">:</span> <span class="mf">44100.0</span><span class="p">,</span> <span class="nv">channels</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">var</span> <span class="nv">audioBuffers</span> <span class="o">=</span> <span class="p">[</span><span class="kt">AVAudioPCMBuffer</span><span class="p">]()</span>
+<span class="k">let</span> <span class="nv">audioQueue</span> <span class="o">=</span> <span class="nf">dispatch_queue_create</span><span class="p">(</span><span class="s">"SynthQueue"</span><span class="p">,</span> <span class="kt">DISPATCH_QUEUE_SERIAL</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">audioSempahore</span> <span class="o">=</span> <span class="nf">dispatch_semaphore_create</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">samplesPerBuffer</span> <span class="o">=</span> <span class="kt">AVAudioFrameCount</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>   
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">PCMBuffer</code> represents a sampled wave form (<a href="https://en.wikipedia.org/wiki/Pulse-code_modulation">PCM</a>) placed into a buffer. There’s a queue for the currently playing audio buffer and the one to be scheduled after. You can think of this as playing a ‘snippet’ of the waveform, and you’ll want to play these ‘snippets’ sequentially, without delay, to recreate the waveform you hear. Once the playing audio buffer finishes it is then calculated and scheduled again and so on - hence the ‘loop’ or ‘circular’ buffer. In code, the <code class="highlighter-rouge">AVAudioPCMBuffer</code> array of size 2 represents this loop - since after the 1st buffer is played the 0th buffer can be recalculated and scheduled after. This is why the bufferIndex is recalculated after scheduling the buffer with: <code class="highlighter-rouge">self.bufferIndex = (self.bufferIndex + 1) % self.audioBuffers.count</code></p>
+
+<p>The playing buffer has a completion handler that signals the sempahore - allowing for passage through the <code class="highlighter-rouge">dispatch_semaphore_wait(self.audioSempahore, DISPATCH_TIME_FOREVER)
+</code> statement thus calculating and filling the buffer to be played next. The key here is that a buffer needs to always be scheduled before the currently playing buffer finishes - otherwise you’ll hear hiccups in the audio.</p>
+
+<p><strong>Where the heck did these <code class="highlighter-rouge">triangleSample</code> and <code class="highlighter-rouge">squareSample</code>s come from?</strong></p>
+
+<p>Wolfram is your friend - with great resources describing analytic representations of different wave forms i.e. <a href="http://mathworld.wolfram.com/TriangleWave.html">TriangleWave</a>.</p>
+
+<p><strong>How do the effects like EQ, delay, reverb, etc… work?</strong></p>
+
+<p><code class="highlighter-rouge">AVFoundation</code> provides a lot of these tools <em>for you</em> woohoo. In my <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/AudioEngine.swift">AudioEngine</a> implementation you can see how to hook up various effects to the <code class="highlighter-rouge">AVAudioPlayerNode</code> like the <code class="highlighter-rouge">AVAudioUnitDelay</code> which has intuitive high-level parameters <em>wetDryMix</em>. <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/AudioEngine.swift#L38">Here</a> is the initialization for my <code class="highlighter-rouge">AudioEngine</code> which relies on the <code class="highlighter-rouge">AVAudioEngine</code>:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">init</span> <span class="p">(</span><span class="nv">numberOfVoices</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span> <span class="nv">withKey</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">withOctave</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">playbackFileUrl</span> <span class="o">=</span> <span class="kc">nil</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">dryMasterMixerNode</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="k">in</span> <span class="mi">0</span><span class="o">...</span><span class="p">(</span><span class="n">numberOfVoices</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">voice</span> <span class="o">=</span> <span class="kt">Voice</span><span class="p">(</span><span class="nv">withKey</span><span class="p">:</span> <span class="n">withKey</span><span class="p">,</span> <span class="nv">withOctave</span><span class="p">:</span> <span class="n">withOctave</span><span class="p">)</span>
+        <span class="n">voiceArray</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="n">voice</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">voice</span><span class="o">.</span><span class="n">oscNode</span><span class="p">)</span>
+        <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">voice</span><span class="o">.</span><span class="n">oscNode</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">dryMasterMixerNode</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">delayNode</span> <span class="o">=</span> <span class="kt">AVAudioUnitDelay</span><span class="p">()</span>
+    <span class="n">delayNode</span><span class="o">!.</span><span class="n">bypass</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="n">delayNode</span><span class="o">!.</span><span class="n">delayTime</span> <span class="o">=</span> <span class="mf">0.68</span>
+    <span class="n">delayNode</span><span class="o">!.</span><span class="n">wetDryMix</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">reverbNode</span> <span class="o">=</span> <span class="kt">AVAudioUnitReverb</span><span class="p">()</span>
+    <span class="n">reverbNode</span><span class="o">!.</span><span class="n">bypass</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="n">reverbNode</span><span class="o">!.</span><span class="n">wetDryMix</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">eqNode</span> <span class="o">=</span> <span class="kt">AVAudioUnitEQ</span><span class="p">(</span><span class="nv">numberOfBands</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">eqNode</span><span class="o">!.</span><span class="n">bands</span><span class="o">.</span><span class="n">first</span><span class="o">!.</span><span class="n">filterType</span> <span class="o">=</span> <span class="kt">AVAudioUnitEQFilterType</span><span class="o">.</span><span class="kt">LowPass</span>
+    <span class="n">eqNode</span><span class="o">!.</span><span class="n">bands</span><span class="o">.</span><span class="n">first</span><span class="o">!.</span><span class="n">frequency</span> <span class="o">=</span> <span class="mi">800</span>
+    <span class="n">eqNode</span><span class="o">!.</span><span class="n">bands</span><span class="o">.</span><span class="n">first</span><span class="o">!.</span><span class="n">bypass</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="n">eqNode</span><span class="o">!.</span><span class="n">globalGain</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">eqNode</span><span class="o">!.</span><span class="n">bypass</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="n">distortionNode</span> <span class="o">=</span> <span class="kt">AVAudioUnitDistortion</span><span class="p">()</span>
+    <span class="n">distortionNode</span><span class="o">!.</span><span class="n">bypass</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="n">distortionNode</span><span class="o">!.</span><span class="n">wetDryMix</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">delayNode</span><span class="o">!</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">reverbNode</span><span class="o">!</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">eqNode</span><span class="o">!</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">distortionNode</span><span class="o">!</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">attachNode</span><span class="p">(</span><span class="n">playbackFilePlayer</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">dryMasterMixerNode</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">delayNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">delayNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">reverbNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">reverbNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">eqNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">eqNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">distortionNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">distortionNode</span><span class="o">!</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">engine</span><span class="o">.</span><span class="n">mainMixerNode</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="nf">connect</span><span class="p">(</span><span class="n">playbackFilePlayer</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">engine</span><span class="o">.</span><span class="n">mainMixerNode</span><span class="p">,</span> <span class="nv">format</span><span class="p">:</span> <span class="n">audioFormat</span><span class="p">)</span>
+    
+    <span class="k">do</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="n">engine</span><span class="o">.</span><span class="nf">start</span><span class="p">()</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"Engine Crashed"</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="k">let</span> <span class="nv">audioSession</span> <span class="o">=</span> <span class="kt">AVAudioSession</span><span class="o">.</span><span class="nf">sharedInstance</span><span class="p">()</span>
+    <span class="k">do</span> <span class="p">{</span>
+        <span class="k">try</span> <span class="n">audioSession</span><span class="o">.</span><span class="nf">setActive</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+        <span class="k">try</span> <span class="n">audioSession</span><span class="o">.</span><span class="nf">setCategory</span><span class="p">(</span><span class="s">"AVAudioSessionCategoryPlayback"</span><span class="p">)</span>
+
+    <span class="p">}</span> <span class="k">catch</span>  <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="s">"audio session crash"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Notice how you essentially attach nodes to an engine and then connect them accordingly - similar to a real ‘fx’ chain like guitar pedals or rack units.</p>
+
+<p><strong>Is the timbre changing???</strong></p>
+
+<p>One neat aspect that I felt utilized the screen space is the fact that the position (‘y’- vertical position) of your finger on the key changes the timbre of the oscillator by changing the ‘wave ratio’ - the amount of squareness in the wave - giving a more buzzy tone further down you go. To see how I implemented this gesture location tracking the brute force way, check out the <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/PadHandler.swift">PadHandler</a>. (This implementation can be drastically improved with gesture recognizers mentioned in the Pitfalls section). This feature could be expanded to utilize <em>force touch</em> <a href="https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/Adopting3DTouchOniPhone/3DTouchAPIs.html">APIs</a> on the newer iPhones to have parameter affect the timbre or fx of the oscillator. I didn’t feel compelled to do so since I’m personally hanging on to my cracked iPhone 6 and 5.</p>
+
+<h3 id="pitfalls-and-improvements-1">Pitfalls and Improvements</h3>
+
+<ul>
+  <li>Overall lack of <a href="https://developer.apple.com/reference/uikit/uigesturerecognizer?changes=latest_minor">gesture recognizers</a>. Using gesture recognizers would have made my life a lot easier for handling key presses and sequencer events. Currently the targets are manually added and connected to a selector with <code class="highlighter-rouge">addTarget</code>.
+ <em>One improved approach</em> would be to have the keyboard as a custom view in a separate xib with all the appropriate tap recognizers on it for event handling and triggering the audio oscillators. <em>Another improved approach</em> could be to use a collection view for both the keyboard and sequencer.</li>
+  <li>A lot of hard coded or calculated UI code. Basically, the entire UI is based on ratios off the screen bounds, <code class="highlighter-rouge">UIScreen.mainScreen().bounds</code>. Leaving for a lot of calculated code like the key pad frame. For example:</li>
+</ul>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">widthOfPad</span> <span class="o">=</span> <span class="kt">Int</span><span class="p">(</span><span class="nf">ceil</span><span class="p">(</span><span class="kt">Double</span><span class="p">(</span><span class="kt">Int</span><span class="p">(</span><span class="n">screenWidth</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">numberOfPads</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="kt">Double</span><span class="p">(</span><span class="n">numberOfPads</span><span class="p">)))</span>
+<span class="k">let</span> <span class="nv">heightOfPad</span> <span class="o">=</span> <span class="kt">Int</span><span class="p">(</span><span class="n">screenHeight</span> <span class="o">-</span> <span class="mi">42</span><span class="p">)</span>
+</code></pre></div></div>
+
+<ul>
+  <li>The sequencer doesn’t use a collection view. Currently it’s a calculated grid of <code class="highlighter-rouge">UIButton</code>s with the appropriate target attached. <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/SequencerViewController.swift#L110">For example</a>:</li>
+</ul>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">calculateGrid</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">drumButtons</span><span class="o">.</span><span class="nf">removeAll</span><span class="p">()</span>
+    <span class="k">let</span> <span class="nv">remainingHeight</span> <span class="o">=</span> <span class="n">screenHeight</span> <span class="o">-</span> <span class="n">toolbarView</span><span class="o">!.</span><span class="n">frame</span><span class="o">.</span><span class="n">height</span>
+    <span class="k">let</span> <span class="nv">drumBtnHeight</span> <span class="o">=</span> <span class="n">remainingHeight</span> <span class="o">/</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">numberOfRows</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">drumBtnWidth</span> <span class="o">=</span> <span class="n">screenWidth</span> <span class="o">/</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">numberOfColumns</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="k">in</span> <span class="mi">0</span><span class="o">...</span><span class="p">(</span><span class="n">numberOfRows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">columnArray</span> <span class="o">=</span> <span class="p">[</span><span class="kt">UIButton</span><span class="p">]()</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="k">in</span> <span class="mi">0</span><span class="o">...</span><span class="p">(</span><span class="n">numberOfColumns</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">x</span> <span class="o">=</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="o">*</span> <span class="n">drumBtnWidth</span>
+            <span class="k">let</span> <span class="nv">y</span> <span class="o">=</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">*</span> <span class="n">drumBtnHeight</span> <span class="o">+</span> <span class="n">toolbarView</span><span class="o">!.</span><span class="n">frame</span><span class="o">.</span><span class="n">height</span>
+            <span class="k">let</span> <span class="nv">btn</span> <span class="o">=</span> <span class="kt">UIButton</span><span class="p">(</span><span class="nv">frame</span><span class="p">:</span> <span class="kt">CGRect</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span> <span class="nv">width</span><span class="p">:</span> <span class="n">drumBtnWidth</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="n">drumBtnHeight</span><span class="p">))</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="n">padOffColor</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">borderWidth</span> <span class="o">=</span> <span class="mf">0.5</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">borderColor</span> <span class="o">=</span> <span class="n">btnBorderColor</span><span class="o">.</span><span class="kt">CGColor</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">row</span> <span class="o">*</span> <span class="n">numberOfColumns</span> <span class="o">+</span> <span class="n">col</span>
+            <span class="n">btn</span><span class="o">.</span><span class="nf">addTarget</span><span class="p">(</span><span class="k">self</span><span class="p">,</span> <span class="nv">action</span><span class="p">:</span> <span class="kd">#selector(</span><span class="nf">SequencerViewController.toggleDrumBtn(_:)</span><span class="kd">)</span><span class="p">,</span> <span class="nv">forControlEvents</span><span class="p">:</span> <span class="kt">UIControlEvents</span><span class="o">.</span><span class="kt">TouchUpInside</span><span class="p">)</span>
+            <span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">btn</span><span class="p">)</span>
+            <span class="n">columnArray</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="n">btn</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">drumButtons</span><span class="o">.</span><span class="nf">append</span><span class="p">(</span><span class="n">columnArray</span><span class="p">)</span>
+    <span class="p">}</span>	
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The keyboard works <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/SynthViewController.swift#L83">similiarly</a>.</p>
+
+<ul>
+  <li>The sequencer doesn’t properly sequence audio samples. Currently all the samples are triggered when the UI for the row updates via an <code class="highlighter-rouge">NSTimer</code>. <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/SequencerViewController.swift#L219">For example</a>:</li>
+</ul>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">playStep</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">isPlaying</span> <span class="p">{</span>
+        <span class="n">playIndex</span> <span class="o">=</span> <span class="n">playIndex</span> <span class="o">%</span> <span class="n">numberOfColumns</span>
+        <span class="k">let</span> <span class="nv">indicesToPlay</span> <span class="o">=</span> <span class="nf">getIndicesToPlayAndHighlightColumn</span><span class="p">(</span><span class="n">playIndex</span><span class="p">)</span>
+        <span class="n">audioEngine</span><span class="o">!.</span><span class="nf">triggerDrumSamplesForIndices</span><span class="p">(</span><span class="n">indicesToPlay</span><span class="p">)</span>
+        <span class="n">playIndex</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">let</span> <span class="nv">timeInterval</span> <span class="o">=</span> <span class="kt">NSTimeInterval</span><span class="p">(</span><span class="kt">Float</span><span class="p">(</span><span class="mi">240</span><span class="p">)</span> <span class="o">/</span> <span class="kt">Float</span><span class="p">(</span><span class="n">numberOfColumns</span> <span class="o">*</span> <span class="n">bpm</span><span class="p">))</span>
+        <span class="kt">NSTimer</span><span class="o">.</span><span class="nf">scheduledTimerWithTimeInterval</span><span class="p">(</span><span class="n">timeInterval</span><span class="p">,</span> <span class="nv">target</span><span class="p">:</span> <span class="k">self</span><span class="p">,</span> <span class="nv">selector</span><span class="p">:</span> <span class="kd">#selector(</span><span class="nf">SequencerViewController.playStep</span><span class="kd">)</span><span class="p">,</span> <span class="nv">userInfo</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">repeats</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The AudioEngine then plays the indices of the drum grid by scheduling the audio files to play in the array of <code class="highlighter-rouge">DrumSample</code>s. <a href="https://github.com/jescriba/synthia/blob/3aa5372ec47534704f488daceebb8b5de33fe3a2/Synthia/DrumSample.swift#L39">Here</a>:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">trigger</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="o">!</span><span class="n">hasCompletedPlayback</span> <span class="p">{</span>
+	    <span class="n">playerNode</span><span class="o">.</span><span class="nf">stop</span><span class="p">()</span>
+	<span class="p">}</span>
+	<span class="n">hasCompletedPlayback</span> <span class="o">=</span> <span class="kc">false</span>
+	<span class="n">playerNode</span><span class="o">.</span><span class="nf">scheduleFile</span><span class="p">(</span><span class="n">sampleFile</span><span class="o">!</span><span class="p">,</span> <span class="nv">atTime</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="p">{</span>
+	    <span class="k">self</span><span class="o">.</span><span class="n">hasCompletedPlayback</span> <span class="o">=</span> <span class="kc">true</span>
+	<span class="p">})</span>
+	<span class="n">playerNode</span><span class="o">.</span><span class="nf">play</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Note this <strong>is not</strong> a good approach and causes problems when the sequencer starts lagging for a sample to complete playing and the audio events get ‘backed’ up. The correct approach probably involves actually using a properly calculated <code class="highlighter-rouge">AVAudioTime</code> (<a href="https://developer.apple.com/reference/avfoundation/avaudiotime">docs</a>) to schedule the files with any previously playing samples in a row being terminated before completion, if appropriate.</p>
+
+<p>Maybe if I get around to picking up this project again I’ll refactor and fix these notable issues. Or just start a project from scratch.</p>
+
+<h1 id="moving-forward">Moving Forward</h1>
+<p>After learning more about app development especially using Auto-Layout through sample apps with <a href="https://github.com/codepath">CodePath</a>, I’ve started looking forward to making a new app utilizing some of these learned lessons as well as an increased familarity with Xcode.</p>
+
+<h3 id="tarty">Tarty</h3>
+
+<p>An Art educational tool using the <a href="https://developers.artsy.net/">Artsy API</a>. Uses Auto-Layout, gesture recognizers, delegates, and collection views as improvements on older patterns mentioned above.</p>
+
+<p><strong>Currently in preliminary development.</strong></p>
+
+<p>Source: <a href="https://github.com/jescriba/tarty">https://github.com/jescriba/tarty</a></p>
+
+
+
+  <small>tags: <em></em></small>
+
+
+
+      </section>
+      <footer>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+    
+  </body>
+</html>
