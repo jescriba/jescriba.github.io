@@ -12,7 +12,7 @@ documents of things I enjoy
 
 pages dedicated to particular projects I've worked on
 
-* ## SimpleSequencer
+* ## [SimpleSequencer](SimpleSequencer)
 ...work in progress... Minimal sequencer for controlling hardware synths via MIDI on iOS devices
 
 * ## [MusicPanels](MusicPanels)
