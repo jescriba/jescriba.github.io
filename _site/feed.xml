@@ -1,4 +1,418 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-11-21T19:26:37-08:00</updated><id>http://localhost:4000/</id><title type="html">Joshua</title><subtitle>Joshua E's blog and projects archive</subtitle><entry><title type="html">Background Jobs with Resque</title><link href="http://localhost:4000/2017/06/02/background-jobs-with-resque.html" rel="alternate" type="text/html" title="Background Jobs with Resque" /><published>2017-06-02T00:00:00-07:00</published><updated>2017-06-02T00:00:00-07:00</updated><id>http://localhost:4000/2017/06/02/background-jobs-with-resque</id><content type="html" xml:base="http://localhost:4000/2017/06/02/background-jobs-with-resque.html">&lt;h1 id=&quot;background&quot;&gt;Background&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-01-04T14:25:16-08:00</updated><id>http://localhost:4000/</id><title type="html">Joshua</title><subtitle>Joshua E's blog and projects archive</subtitle><entry><title type="html">MIDI Box with Standalone ATMega 328</title><link href="http://localhost:4000/2019/12/22/midibox.html" rel="alternate" type="text/html" title="MIDI Box with Standalone ATMega 328" /><published>2019-12-22T00:00:00-08:00</published><updated>2019-12-22T00:00:00-08:00</updated><id>http://localhost:4000/2019/12/22/midibox</id><content type="html" xml:base="http://localhost:4000/2019/12/22/midibox.html">&lt;h1 id=&quot;background&quot;&gt;Background&lt;/h1&gt;
+&lt;p&gt;I wanted to tackle making an embedded microcontroller project in plain C using the ATMega 328 &lt;em&gt;without&lt;/em&gt; the Arduino environment &lt;sup&gt;[1]&lt;/sup&gt;. Through school, I had some experience programming the 68HCS12 using Assembly, but I wanted to learn more about developing a project in C for the popular Atmel chips. 
+   As an aspiring maker of music widgets - I decided to make a MIDI controller with the following feature set:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;MIDI I/O (in/out/thru) with the 5-pin connector format&lt;/li&gt;
+  &lt;li&gt;Four 7-segment LED displays&lt;/li&gt;
+  &lt;li&gt;LM386 audio amp for modest audio output to power small speakers&lt;/li&gt;
+  &lt;li&gt;Pinouts to the microcontroller pins for ad-hoc projects i.e. buttons, switches, knobs, etc…&lt;/li&gt;
+  &lt;li&gt;Microusb to power the project&lt;/li&gt;
+  &lt;li&gt;6-pin ICSP (In-circuit serial programmer&lt;sup&gt;[2]&lt;/sup&gt;) header for reprogramming the device. In my case, I’m using an Arudino to program the MIDIBox with an AVR-as-ISP configuration.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;communication&quot;&gt;Communication&lt;/h2&gt;
+
+&lt;p&gt;First, I’ll do a brief overview and description of the communication technologies involved in this project assuming a general audience.&lt;/p&gt;
+
+&lt;h3 id=&quot;uart&quot;&gt;UART&lt;/h3&gt;
+&lt;p&gt;Universal asynchronous receiver-transmitter (UART) is a computer hardware device for asynchronous serial communication in which the data format and transmission speeds are configurable&lt;sup&gt;[3]&lt;/sup&gt;. Asynchronous serial communication refers to the data transmission happening through a sequence of bits on an agreed upon rate so no clock line is required. The basic premise behind this communication is a &lt;em&gt;start bit&lt;/em&gt; (0 or LOW) which signals the start of data transmission followed by the data of interest (8-bit in our case) which is concluded with the &lt;em&gt;stop bit&lt;/em&gt; (1 or HIGH). In this configuration the data needs to be sent at an agreed rate, the &lt;em&gt;baud rate&lt;/em&gt; (bit/s), to be properly interpreted. Lastly, the &lt;em&gt;endianness&lt;/em&gt; of the receiver/transmitter need to be agreed upon - this refers to the order of bits being sent. For example, Big-endian refers to the most significant bit coming first i.e. 109 where 1 is the Most Significant Bit and 9 the LSB then it would be sent serially as 1 -&amp;gt; 0 -&amp;gt; 9.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/serial_data_frame.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For this particular use case, we’ll focus on MIDI.&lt;/p&gt;
+
+&lt;h4 id=&quot;midi&quot;&gt;MIDI&lt;/h4&gt;
+&lt;p&gt;Musical Instrument Digital Interface (MIDI) is a standard that defines the communication protocol widely used in electrical audio instruments &lt;sup&gt;[4]&lt;/sup&gt;. For this discussion, we will assume the MIDI 1.0 protocol. In this configuration, MIDI is an async serial communication protocol where the data frame is a 8-bit word transmitted at 31.25 kbit/s (this was chosen to be the exact division by 1 MHz for compatibility with microprocessors).
+Wikipedia summarizes the bytes (in hex) we’re interested in here (abridged):&lt;/p&gt;
+
+&lt;p&gt;MIDI 1.0 Channel Voice messages&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Event&lt;/th&gt;
+      &lt;th&gt;Status Byte&lt;/th&gt;
+      &lt;th&gt;Byte 2&lt;/th&gt;
+      &lt;th&gt;Byte 3&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Note Off&lt;/td&gt;
+      &lt;td&gt;0x8 Channel 0x0..0xF&lt;/td&gt;
+      &lt;td&gt;Note Number&lt;/td&gt;
+      &lt;td&gt;Velocity&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Note On&lt;/td&gt;
+      &lt;td&gt;0x9 Channel 0x0..0xF&lt;/td&gt;
+      &lt;td&gt;Note Number&lt;/td&gt;
+      &lt;td&gt;Velocity&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Here the note number can run from 0 to 127 (in decimal) (C1 to G9) and similarly the velocity represents the velocity of striking the keys on a keyboard. The channel message in practice corresponds to having multiple midi instruments on the same port. It’s worth noting that not all midi messages will necessarily be three byte messages (program change event is an example of this).&lt;/p&gt;
+
+&lt;h3 id=&quot;spi&quot;&gt;SPI&lt;/h3&gt;
+&lt;p&gt;Serial Peripheral Interface (SPI) is a synchronous serial communication specification&lt;sup&gt;5&lt;/sup&gt;. It’s a four-wire serial bus with the following wires: SCLK (clock), MOSI (Master Out Slave In - data sent from master), MISO (Master In Slave Out - data sent from slave), SS (Slave Select).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/spi.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The advantages of this communication configuration:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;there’s no baud rate requirement&lt;/li&gt;
+  &lt;li&gt;2-way communication MOSI, MISO&lt;/li&gt;
+  &lt;li&gt;Multiple devices can communicate on the 2-wire (SCLK, MOSI) same bus leveraging the SS (select) pin.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;With SPI, there are a few points that need to be configured by the microcontroller regarding the timing and phase of the pin signals. The &lt;em&gt;CPOL&lt;/em&gt; (clock polarity - whether the pin idles at LOW or HIGH value) and &lt;em&gt;CPHA&lt;/em&gt; (clock phase - whether to read data in on the leading-edge or tailing edge of the trigger) need to be setup. 
+This wiki image visualizes it well:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/cpha_cpol.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In my use case, I’m interested in SPI because it’s the communication format used to talk to the AS 1108 chip which is a 4-digit LED (7-segment display) driver&lt;sup&gt;6&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, the ATMega328p microcontroller has embedded components to handle USART and SPI communication for us without the use of external integrated circut chips. We’ll explore this in the next section.&lt;/p&gt;
+
+&lt;h2 id=&quot;software&quot;&gt;Software&lt;/h2&gt;
+
+&lt;h3 id=&quot;configuration-on-avr&quot;&gt;Configuration on AVR&lt;/h3&gt;
+
+&lt;p&gt;We’ll look at how to configure the communication on the microcontroller in C. The toolchain used is avrdude to upload the code to the board. In my case, I used an Arduino to flash my MIDI Box board through the ICSP header&lt;sup&gt;7&lt;/sup&gt;.
+In this section, we’ll lean &lt;em&gt;heavily&lt;/em&gt; on the Atmega328p datasheet &lt;sup&gt;8&lt;/sup&gt;. Additionally, the avr/io.h header file for defining values for the &lt;em&gt;registers&lt;/em&gt; of interest. As we’ll see, the registers are the sequence of memory cells (bits) that configure the interrupt systems and read/write data.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aside on Interrupts&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;I configured the software to use interrupts &lt;sup&gt;9&lt;/sup&gt; which is a system in which a pin change can trigger an immediate execution of code. This allows for more event-driven programming rather than constantly polling for data and state changes. For a great description with examples of configuring interrupts in AVR see: &lt;em&gt;[10]&lt;/em&gt;. The interrupt system relies on the hardware (AVR chip) maintaining a list of pointers in memory (vector table). When an interrupt occurs, the function pointed to gets executed. Two notable points of the interrupt system is that the code is blocking the main event loop so you want that to run quickly and there is an ISR (interrupt service routine) table which describes the &lt;em&gt;order&lt;/em&gt; of interrupts being serviced/executed (i.e. the order of operations). In my use case, I set up interrupts for UART, SPI, and some basic input controls (switch and potentiometer).&lt;/p&gt;
+
+&lt;p&gt;In code there is a global interrupt bit that can be set with &lt;em&gt;sei()&lt;/em&gt; to turn on the interrupt system and &lt;em&gt;cli()&lt;/em&gt; to clear interrupts globally. These two commands are also handy for running code &lt;em&gt;atomically&lt;/em&gt; whenever you need to run a snippet without worrying about interrupts being executed intermittently. Whenever an ISR function is called avr will handle calling cli() at the beginning, to prevent further interrupts from being called within another interrupt, and sei() at the end to allow interrupts to occur again.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aside on I/O Ports&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;A port on the AVR corresponds to an 8-bit storage location that can be accessed as either an input or output. In particular, the 3 register groups of interest are the &lt;em&gt;DDRx&lt;/em&gt;, &lt;em&gt;PINx&lt;/em&gt;, &lt;em&gt;PORTx&lt;/em&gt; where ‘X’ corresponds to the port value B, C, D etc… (refer to chip pinout). The &lt;em&gt;DDR&lt;/em&gt; (data direction register) is used for configuring a pin to be either an output or input. The &lt;em&gt;PIN&lt;/em&gt; (pin input) corresponds to the input value at each pin number (0-7) for the port of interest. The &lt;em&gt;PORTx&lt;/em&gt; register corresponds to the output value to be written to a pin when configured in output mode. Below is an example of PORT D from the data sheet for visual aid.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/port_d_registers.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;communication-setup&quot;&gt;Communication Setup&lt;/h4&gt;
+
+&lt;p&gt;I’ll briefly describe the registers and bits of interest in configuring the communication for this project. Reference the datasheet for a more thorough description of the registers.&lt;/p&gt;
+
+&lt;h5 id=&quot;uart-1&quot;&gt;&lt;u&gt;UART&lt;/u&gt;&lt;/h5&gt;
+
+&lt;p&gt;First, I configured the UART baud rate to match the 31.25 kbit/s rate specified by the MIDI protocol. This is done by setting the UBRRnH (the four most significant bits) and UBRRnL (the four least significant bits). The data sheet includes a handy table for realizing what values need to be set here since it’s related to the clock speed on the microcontroller. In my case, I have an external quartz crystal clock at 16 MHz. The avr library includes &amp;lt;util/setbaud.h&amp;gt; which can calculate these values into UBRRH_VALUE and UBRRL_VALUE assuming one’s code defines a BAUD constant and F_CPU (microcontroller clock speed).&lt;/p&gt;
+
+&lt;p&gt;In code these are set with:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#define F_CPU = 16000000UL
+#define BAUD  = 31250UL
+
+UBRR0H = UBRRH_VALUE; 
+UBRR0L = UBRRL_VALUE;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/usart_baud_registers.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, we need to configure the USART Control and Status Register n C&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/usart_control_status_register_c.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The relevant bits here are: &lt;em&gt;UCSZn1&lt;/em&gt; and &lt;em&gt;UCSZn0&lt;/em&gt; which configure the number of bits being framed. In my case, I set both of these values to one with:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;UCSR0C = (1 &amp;lt;&amp;lt; UCSZ01) | (1 &amp;lt;&amp;lt; UCSZ00);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Which sets it to be configured to have 8 data bits and 1 stop bit required for receiving and sending MIDI. Note: &lt;em&gt;UCSZ00&lt;/em&gt; here is a constant storing that bit position within the register so we can bit shift it convienently to turn it on or off.&lt;/p&gt;
+
+&lt;p&gt;Now let’s setup the USART Control and Status Register n B.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/usart_control_status_register_b.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This register handles enabling the receiver/transmitter and interrupt system. In particular we have the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;TXENn&lt;/em&gt; Transmitter Enable&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;RXENn&lt;/em&gt; Receiver Enable&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;TXENn&lt;/em&gt; TX Complete Interrupt Enable&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;RXICEn&lt;/em&gt; RX Complete Interrupt Enable&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As a result:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  UCSR0B = (1 &amp;lt;&amp;lt; TXEN0) | (1 &amp;lt;&amp;lt; RXEN0); // Turn on RX/TX
+  UCSR0B |= (1 &amp;lt;&amp;lt; RXCIE0) | (1 &amp;lt;&amp;lt; TXCIE0); // Turn on interrupts
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Finally the USART I/O Data Register. These are the two 8-bit registers corresponding to the receive and transmit buffers.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/usart_data_register.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This interrupt configuration allows me to write code like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ISR(USART_RX_vect) {
+  currentStatePtr-&amp;gt;midiRXFlag = 1;
+  insertByte(UDR0); // read data
+}
+	
+ISR(USART_TX_vect) {
+  currentStatePtr-&amp;gt;midiTXFlag = 1;
+  // write
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;~ pg 160 on the microchip datasheet&lt;sup&gt;8&lt;/sup&gt;&lt;/p&gt;
+
+&lt;h5 id=&quot;spi-1&quot;&gt;&lt;u&gt;SPI&lt;/u&gt;&lt;/h5&gt;
+
+&lt;p&gt;Next I setup the SPI for communicating to the LED display. I set up some basic initialization code:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void initSPI(void) {
+  SPI_SS_DDR |= (1 &amp;lt;&amp;lt; SPI_SS);                        /* set SS output */
+  SPI_SS_PORT |= (1 &amp;lt;&amp;lt; SPI_SS);       /* start off not selected (high) */
+  SPI_MOSI_DDR |= (1 &amp;lt;&amp;lt; SPI_MOSI);                   /* output on MOSI */
+  SPI_MISO_PORT |= (1 &amp;lt;&amp;lt; SPI_MISO);                  /* pullup on MISO */
+  SPI_SCK_DDR |= (1 &amp;lt;&amp;lt; SPI_SCK);                      /* output on SCK */
+  // Don't have to set phase, polarity b/c default works the CPHA and CPOL table
+  SPCR |= (1 &amp;lt;&amp;lt; SPR1);                /* div 64, safer for breadboards */
+  SPCR |= (1 &amp;lt;&amp;lt; MSTR);                                  /* clockmaster */
+  SPCR |= (1 &amp;lt;&amp;lt; SPE);                                        /* enable */
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;There’s some initialization code for configuring the data direction register and ports as mentioned in the I/O peripheral section.&lt;/p&gt;
+
+&lt;p&gt;Focusing on the SPI Control register:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/spi_control_register.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;SPR1&lt;/em&gt; (and SPR0) sets the SCK rate to be div 64 (for F_CPU) in accordance with the data sheet table.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;MSTR&lt;/em&gt; (Master/Slave select) sets master SPI mode when written 1 otherwise it’s in slave SPI mode (0).&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;SPE&lt;/em&gt; (SPI enable) bit enables SPI mode.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;DORD&lt;/em&gt; (Data order) a value of 0 means MSB is sent first a value of 1 means LSB is set first. In my case 0 is good.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;SPIE&lt;/em&gt; (SPI interrupt enable) a value of 1 sets the interrupt system for serial transfer complete.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void initSPIInterrupt() {
+  SPCR |= (1 &amp;lt;&amp;lt; SPIE);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Finally, the SPI Data Register (&lt;em&gt;SPDR&lt;/em&gt;) is the 8-bit register for read/write data transfers.&lt;/p&gt;
+
+&lt;p&gt;This allows for the corresponding ISR:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ISR(SPI_STC_vect) {
+  SLAVE_SELECT; // signal start transfer
+  SPDR = byte; // trade byte
+  SLAVE_DESELECT; // signal end transfer
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;~ pg 140 on the microchip datasheet&lt;sup&gt;8&lt;/sup&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;input-peripherals&quot;&gt;Input Peripherals&lt;/h4&gt;
+
+&lt;p&gt;I set up some basic input peripherals - a switch and knob to control parameters in code. In this section, I’ll discuss how to configure the reading of data from the knob/potentiometer and the state of the switch as well as being notified when changes occur via the interrupt system.&lt;/p&gt;
+
+&lt;h5 id=&quot;knob&quot;&gt;Knob&lt;/h5&gt;
+
+&lt;p&gt;The knob leverages the ADC system on the microcontroller to map a position of the knob to a value in code. I won’t discuss the ADC system in detail. The gist is that it’s an Analog to Digital Converter (ADC) that can read the analog voltage input from the voltage-divider formed by the potentiometer. The AVR chip holds the 10-bit ADC data which can be read based on the ADC conversion complete interrupt trigger.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void initADC() {
+  ADMUX |= (1 &amp;lt;&amp;lt; REFS0); // reference voltage on avcc
+  ADMUX |= (1 &amp;lt;&amp;lt; ADLAR); // left adjust result
+  ADCSRA |= (1 &amp;lt;&amp;lt; ADPS2) | (1 &amp;lt;&amp;lt; ADPS1); // adc clock prescalr / 64
+  ADCSRA |= (1 &amp;lt;&amp;lt; ADEN); // enable adc
+}
+
+void startADC() {
+  ADCSRA |= (1 &amp;lt;&amp;lt; ADSC); // start the adc conversion
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let’s dive into the corresponding registers in the datasheet to understand what’s happening.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/admux_register.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The ADC Multiplexer Selection Register (ADMUX) is for multiplexing the ADC inputs so that multiple ADC inputs can update the value of the ADC data register. In my case, I only have one ADC pin being read so I just set the REFS0 bit which sets up the reference voltage on AVCC with external capacitor at AREF pin. This allows for analog values to be read against some reference voltage that defines the max value.&lt;/p&gt;
+
+&lt;p&gt;The ADMUX register also contains the &lt;em&gt;ADLAR&lt;/em&gt; bit (ADC Left Adjust Result). This bit impacts how the high and low bits of ADC data are represented in the ADCL and ADCH registers. Since the ATMega328p has a 10-bit register the resulting value is found in these two registers.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/adc_data_register.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For now I only care about the 8 most significant bits so I’ll set the ADLAR bit so I can read the ADC data by just grabbing the value of ADCH.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/adc_control_status_register_a.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The ADC Control and Status Register A (ADCSRA) is critical for setting up the interrupt system and reading data.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;ADEN&lt;/em&gt; bit being set to 1 will enable the ADC&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;ADIE&lt;/em&gt; bit being set to 1 will enable the ADC interrupt&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;ADSC&lt;/em&gt; bit starts the ADC conversion. The ADC can run in single conversion mode (read once per bit set) or free running mode (constantly running after the first start).&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;ADPS2&lt;/em&gt;, &lt;em&gt;ADPS1&lt;/em&gt;, &lt;em&gt;ADPS0&lt;/em&gt; bits are for selecting a prescalar for the ADC clock. This means it’ll divide the cpu clock speed by a factor and have that be the ADC clock speed. I don’t need particularly quick results so I set ADPS2 and ADPS1 to get a factor of 1/64.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To respond to knob changes immediately I setup the ADC interrupts&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void initADCInterrupt() {
+  // Enable ADC interrupts
+  ADCSRA |= (1 &amp;lt;&amp;lt; ADIE);
+}
+
+ISR(ADC_vect) {
+  currentStatePtr-&amp;gt;knobFlag = 1;
+  currentStatePtr-&amp;gt;knobValue = ADCH; // drops 2 bits of precision as discussed
+  startADC(); // trigger the next read
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;~ pg 217 on the microchip datasheet.&lt;/p&gt;
+
+&lt;h5 id=&quot;switch&quot;&gt;Switch&lt;/h5&gt;
+
+&lt;p&gt;The switch functions by setting up a pin change interrupt on the chip which then has a bit that can be read to differentiate the LOW and HIGH state of the switch (grounded vs +5V).&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;void initInterrupt0(void) {
+  EIMSK |= (1 &amp;lt;&amp;lt; INT0);
+  EICRA |= (1 &amp;lt;&amp;lt; ISC00);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Taking a closer look at the corresponding registers, we have:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/external_interrupt_mask_register.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The &lt;em&gt;INT0&lt;/em&gt; bit sets the external interrupt triggered on the rising/falling edge of pin INT0.&lt;/p&gt;
+
+&lt;p&gt;and&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/external_interrupt_control_register_a.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The &lt;em&gt;ISC00&lt;/em&gt; bit on External Interrupt Control Register A (&lt;em&gt;EICRA&lt;/em&gt;) will configure the interrupt to trigger on both a rising and falling edge. Other combinations of bits to ISC00 and ISC01 can be set to trigger on just a rising edge or falling edge instead.&lt;/p&gt;
+
+&lt;p&gt;Setting up these interrupts allows me to write code like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ISR(INT0_vect) {
+  if (bit_is_clear(SWITCH_PIN, SWITCH)) {
+	currentStatePtr-&amp;gt;switchValue = 1;
+  } else {
+	currentStatePtr-&amp;gt;switchValue = 0;
+  }
+  currentStatePtr-&amp;gt;switchFlag = 1;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;~ pg 54 in the microchip datasheet.&lt;/p&gt;
+
+&lt;p&gt;Source: &lt;a href=&quot;https://github.com/jescriba/MIDIBox/tree/master/Software&quot;&gt;https://github.com/jescriba/MIDIBox/tree/master/Software&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;midi-box-circuit&quot;&gt;MIDI Box Circuit&lt;/h2&gt;
+
+&lt;p&gt;Next, I’ll describe the actual schematic and PCB design for the MIDI box circuit.&lt;/p&gt;
+
+&lt;p&gt;Fig. 1
+&lt;img src=&quot;http://localhost:4000/images/midibox/schematic.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Fig 2.
+&lt;img src=&quot;http://localhost:4000/images/midibox/board.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It’s a fairly derivative circuit, but I’ll review the basic pieces.&lt;/p&gt;
+
+&lt;p&gt;At the top left &lt;sup&gt;fig 1&lt;/sup&gt; is the microusb surface mount component used to power the project. Included in the powering component is a capacitor to filter fluctuations in the power supply (more isolation is certainly needed…).&lt;/p&gt;
+
+&lt;p&gt;The center left &lt;sup&gt;fig 1&lt;/sup&gt; is the ATMega328p surface mount chip with an external quartz crystal clock. The microcontroller’s pins are connected to a breakout pinout. Additionally, chip is setup to allow for programming via the ICSP 6-pin header and another 6-pin header for SPI communication to the LED display board (AS 1108 + 4-digits).&lt;/p&gt;
+
+&lt;p&gt;In the center &lt;sup&gt;fig 1&lt;/sup&gt; is the unit for MIDI I/O. It’s the suggested circuitry in the MIDI docs for setting up IO. The notable components are buffers to isolate the circuit, 6N138 optocoupler (for isolating MIDI input since the coupler removes the physical connection using optics), and a reverse diode for protection against input reversely biased.&lt;/p&gt;
+
+&lt;p&gt;On the far right &lt;sup&gt;fig 1&lt;/sup&gt; is a standard LM386N IC chip which is a low power audio amp. It’s output is ac coupled for audio output.&lt;/p&gt;
+
+&lt;p&gt;Lastly, there’s standoffs on the PCB to mount it to the enclosure.&lt;/p&gt;
+
+&lt;p&gt;Source: &lt;a href=&quot;https://github.com/jescriba/MIDIBox/tree/master/Hardware&quot;&gt;https://github.com/jescriba/MIDIBox/tree/master/Hardware&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;debugging&quot;&gt;Debugging&lt;/h2&gt;
+
+&lt;p&gt;Considering this project is certainly a prototype, I had to debug the circuit to understand issues as we’ll see…&lt;/p&gt;
+
+&lt;h3 id=&quot;oscilloscope-debugging&quot;&gt;Oscilloscope debugging&lt;/h3&gt;
+
+&lt;p&gt;I setup my Rigol oscilloscope to read both UART (MIDI) and SPI (Display). This setup was useful for validating the messages from the microcontroller and inspecting signal integrity. Additionally, it’s handy to visualize the timing diagram with real hardware.&lt;/p&gt;
+
+&lt;p&gt;This image displays all of the communication happening (UART + SPI). The blue line highlighted parameter is the MIDI receive line configured to display in hex. The yellow line is the SPI clock.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/midi_scope.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Below is a closer photo of strictly the SPI communication. Here the SCLK is yellow, SS is pink, MOSI is blue. The data in this example is being displayed in binary.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/spi_scope.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;transient-loading&quot;&gt;Transient Loading&lt;/h3&gt;
+
+&lt;p&gt;One issue I noticed with the circuit is noise on the power lines. This noise causes an unbearable hiss/buzz when the speaker is plugged into the circuit.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/transient_loading.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Judging from the photo the issue seems to be from the clock on the LED driver for multiplexing (cycling through the segments to display in the kHz domain). This can be verified by turning off the LED display and observing the audible noise vanishing. The multiplexing results in a quickly changing load on the power supply for the circuit resulting in the &lt;em&gt;transient loading&lt;/em&gt; issues where the corresponding voltage fluctuates periodically as a result of the increased or decreased demand for current from the display (resistive load)&lt;sup&gt;11&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;enclosure-design&quot;&gt;Enclosure Design&lt;/h2&gt;
+
+&lt;p&gt;Finally, I designed an enclosure for the printed circuit board using Blender &lt;sup&gt;12&lt;/sup&gt;. I used heat threaded insets for screwing in the display to the lid and the circuit to the base. I was able to print the design with a 3D printer and with a little bit of modification got this result:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/board_enclosure.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/board_back.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/board_enclosure_open.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/board_enclosure_lid.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://localhost:4000/images/midibox/display_on.png&quot; alt=&quot;hi&quot; class=&quot;inline&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Blender Source included in hardware: &lt;a href=&quot;https://github.com/jescriba/MIDIBox/tree/master/Hardware&quot;&gt;https://github.com/jescriba/MIDIBox/tree/master/Hardware&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;h3 id=&quot;software-improvements&quot;&gt;Software Improvements&lt;/h3&gt;
+
+&lt;p&gt;One noteworthy software improvement would be using the timer system on the AVR chip to have 8-bit synth audio output. Another improvement would be to add additional I/O peripherals like knobs, switches, buttons, motors, etc, etc…
+I’ll likely follow up on additional software improvements since that’s something that can be delved into significantly.&lt;/p&gt;
+
+&lt;h3 id=&quot;hardware-improvements&quot;&gt;Hardware Improvements&lt;/h3&gt;
+
+&lt;p&gt;Upcoming hardware improvements include: fixing the transient loading issue by isolating the display with capacitors or a buffer, adding a usb to serial chip for directly programming via usb, and improving the trace layout and routing on the PCB (I used the auto-router..).&lt;/p&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.oreilly.com/library/view/make-avr-programming/9781449356484/&quot;&gt;https://www.oreilly.com/library/view/make-avr-programming/9781449356484/&lt;/a&gt; [1]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/In-system_programming&quot;&gt;https://en.wikipedia.org/wiki/In-system_programming&lt;/a&gt; [2]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Universal_asynchronous_receiver-transmitter&quot;&gt;https://en.wikipedia.org/wiki/Universal_asynchronous_receiver-transmitter&lt;/a&gt; [3]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/MIDI&quot;&gt;https://en.wikipedia.org/wiki/MIDI&lt;/a&gt; [4]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Serial_Peripheral_Interface&quot;&gt;https://en.wikipedia.org/wiki/Serial_Peripheral_Interface&lt;/a&gt; [5]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://ams.com/documents/20143/36005/AS1108_DS000169_2-00.pdf/dbb78f28-8ed1-b338-3144-d8af7e76a4b8&quot;&gt;https://ams.com/documents/20143/36005/AS1108_DS000169_2-00.pdf/dbb78f28-8ed1-b338-3144-d8af7e76a4b8&lt;/a&gt; [6]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/jescriba/MIDIBox/tree/master/Software&quot;&gt;https://github.com/jescriba/MIDIBox/tree/master/Software&lt;/a&gt; [7]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.sparkfun.com/datasheets/Components/SMD/ATMega328.pdf&quot;&gt;https://www.sparkfun.com/datasheets/Components/SMD/ATMega328.pdf&lt;/a&gt; 
+[8]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf&quot;&gt;http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf&lt;/a&gt;[8]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Interrupt&quot;&gt;https://en.wikipedia.org/wiki/Interrupt&lt;/a&gt; [9]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://bytes.usc.edu/files/ee109/slides/EE109Unit12_Interrupts.pdf&quot;&gt;http://bytes.usc.edu/files/ee109/slides/EE109Unit12_Interrupts.pdf&lt;/a&gt; [10]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://micro.rohm.com/en/techweb/knowledge/dcdc/dcdc_sr/dcdc_sr01/1632/&quot;&gt;https://micro.rohm.com/en/techweb/knowledge/dcdc/dcdc_sr/dcdc_sr01/1632/&lt;/a&gt; [11]&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.blender.org&quot;&gt;https://www.blender.org&lt;/a&gt; [12]&lt;/p&gt;</content><author><name></name></author><summary type="html">Background I wanted to tackle making an embedded microcontroller project in plain C using the ATMega 328 without the Arduino environment [1]. Through school, I had some experience programming the 68HCS12 using Assembly, but I wanted to learn more about developing a project in C for the popular Atmel chips. As an aspiring maker of music widgets - I decided to make a MIDI controller with the following feature set: MIDI I/O (in/out/thru) with the 5-pin connector format Four 7-segment LED displays LM386 audio amp for modest audio output to power small speakers Pinouts to the microcontroller pins for ad-hoc projects i.e. buttons, switches, knobs, etc… Microusb to power the project 6-pin ICSP (In-circuit serial programmer[2]) header for reprogramming the device. In my case, I’m using an Arudino to program the MIDIBox with an AVR-as-ISP configuration.</summary></entry><entry><title type="html">Background Jobs with Resque</title><link href="http://localhost:4000/2017/06/02/background-jobs-with-resque.html" rel="alternate" type="text/html" title="Background Jobs with Resque" /><published>2017-06-02T00:00:00-07:00</published><updated>2017-06-02T00:00:00-07:00</updated><id>http://localhost:4000/2017/06/02/background-jobs-with-resque</id><content type="html" xml:base="http://localhost:4000/2017/06/02/background-jobs-with-resque.html">&lt;h1 id=&quot;background&quot;&gt;Background&lt;/h1&gt;
 &lt;p&gt;I wanted to do a quick review of setting up background jobs for a &lt;a href=&quot;http://www.sinatrarb.com&quot;&gt;Sinatra&lt;/a&gt; app I have deployed with &lt;a href=&quot;http://www.heroku.com&quot;&gt;Heroku&lt;/a&gt;. My web app serves as a music archive where I can upload songs for reference. Naturally, I wanted the site to be able to handle lossless audio formats so I could have acccess to both the lossless and lossy formats. This is where Resque comes in. &lt;a href=&quot;https://github.com/resque/resque&quot;&gt;Resque&lt;/a&gt; is a Redis-backed Ruby library for creating job queues, and &lt;a href=&quot;https://redis.io&quot;&gt;Redis&lt;/a&gt; is an open source (BSD licensed), in-memory data structure store, used as a database, cache and message broker. In my example, I set up a jobs queue for transcoding my lossless audio formats to mp3 using &lt;a href=&quot;https://ffmpeg.org/about.html&quot;&gt;ffmpeg&lt;/a&gt;. In this post, I’ll show you how I got Sinatra, ffmpeg, Resque, and Redis working together in Heroku.&lt;/p&gt;
 
 &lt;h1 id=&quot;restful-music-archive&quot;&gt;RESTful Music Archive&lt;/h1&gt;

@@ -3,18 +3,19 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.4.0 -->
-<title>Joshua | Joshua E’s blog and projects archive</title>
+<title>MIDI Box with Standalone ATMega 328 | Joshua</title>
 <meta name="generator" content="Jekyll v3.7.3" />
-<meta property="og:title" content="Joshua" />
+<meta property="og:title" content="MIDI Box with Standalone ATMega 328" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Joshua E’s blog and projects archive" />
-<meta property="og:description" content="Joshua E’s blog and projects archive" />
-<link rel="canonical" href="http://localhost:4000/blog/" />
-<meta property="og:url" content="http://localhost:4000/blog/" />
+<meta name="description" content="Background I wanted to tackle making an embedded microcontroller project in plain C using the ATMega 328 without the Arduino environment [1]. Through school, I had some experience programming the 68HCS12 using Assembly, but I wanted to learn more about developing a project in C for the popular Atmel chips. As an aspiring maker of music widgets - I decided to make a MIDI controller with the following feature set: MIDI I/O (in/out/thru) with the 5-pin connector format Four 7-segment LED displays LM386 audio amp for modest audio output to power small speakers Pinouts to the microcontroller pins for ad-hoc projects i.e. buttons, switches, knobs, etc… Microusb to power the project 6-pin ICSP (In-circuit serial programmer[2]) header for reprogramming the device. In my case, I’m using an Arudino to program the MIDIBox with an AVR-as-ISP configuration." />
+<meta property="og:description" content="Background I wanted to tackle making an embedded microcontroller project in plain C using the ATMega 328 without the Arduino environment [1]. Through school, I had some experience programming the 68HCS12 using Assembly, but I wanted to learn more about developing a project in C for the popular Atmel chips. As an aspiring maker of music widgets - I decided to make a MIDI controller with the following feature set: MIDI I/O (in/out/thru) with the 5-pin connector format Four 7-segment LED displays LM386 audio amp for modest audio output to power small speakers Pinouts to the microcontroller pins for ad-hoc projects i.e. buttons, switches, knobs, etc… Microusb to power the project 6-pin ICSP (In-circuit serial programmer[2]) header for reprogramming the device. In my case, I’m using an Arudino to program the MIDIBox with an AVR-as-ISP configuration." />
+<link rel="canonical" href="http://localhost:4000/2019/12/22/midibox.html" />
+<meta property="og:url" content="http://localhost:4000/2019/12/22/midibox.html" />
 <meta property="og:site_name" content="Joshua" />
-<link rel="next" href="http://localhost:4000/blog/page2" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-12-22T00:00:00-08:00" />
 <script type="application/ld+json">
-{"@type":"WebPage","url":"http://localhost:4000/blog/","headline":"Joshua","description":"Joshua E’s blog and projects archive","@context":"http://schema.org"}</script>
+{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/12/22/midibox.html"},"@type":"BlogPosting","url":"http://localhost:4000/2019/12/22/midibox.html","headline":"MIDI Box with Standalone ATMega 328","dateModified":"2019-12-22T00:00:00-08:00","datePublished":"2019-12-22T00:00:00-08:00","description":"Background I wanted to tackle making an embedded microcontroller project in plain C using the ATMega 328 without the Arduino environment [1]. Through school, I had some experience programming the 68HCS12 using Assembly, but I wanted to learn more about developing a project in C for the popular Atmel chips. As an aspiring maker of music widgets - I decided to make a MIDI controller with the following feature set: MIDI I/O (in/out/thru) with the 5-pin connector format Four 7-segment LED displays LM386 audio amp for modest audio output to power small speakers Pinouts to the microcontroller pins for ad-hoc projects i.e. buttons, switches, knobs, etc… Microusb to power the project 6-pin ICSP (In-circuit serial programmer[2]) header for reprogramming the device. In my case, I’m using an Arudino to program the MIDIBox with an AVR-as-ISP configuration.","@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Joshua" /></head>
 <body><header class="site-header" role="banner">
@@ -36,13 +37,16 @@
 </header>
 <main class="page-content" aria-label="Content">
       <div class="wrapper">
-        <!-- This loops through the paginated posts -->
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-  <h1><a href="/2019/12/22/midibox.html">MIDI Box with Standalone ATMega 328</a></h1>
-  <p class="author">
-    <span class="date">2019-12-22 00:00:00 -0800</span>
-  </p>
-  <div class="content">
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">MIDI Box with Standalone ATMega 328</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-12-22T00:00:00-08:00" itemprop="datePublished">Dec 22, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
     <h1 id="background">Background</h1>
 <p>I wanted to tackle making an embedded microcontroller project in plain C using the ATMega 328 <em>without</em> the Arduino environment <sup>[1]</sup>. Through school, I had some experience programming the 68HCS12 using Assembly, but I wanted to learn more about developing a project in C for the popular Atmel chips. 
    As an aspiring maker of music widgets - I decided to make a MIDI controller with the following feature set:</p>
@@ -460,136 +464,8 @@ I’ll likely follow up on additional software improvements since that’s somet
 <p><a href="https://www.blender.org">https://www.blender.org</a> [12]</p>
 
 
-  </div>
-
-  <h1><a href="/2017/06/02/background-jobs-with-resque.html">Background Jobs with Resque</a></h1>
-  <p class="author">
-    <span class="date">2017-06-02 00:00:00 -0700</span>
-  </p>
-  <div class="content">
-    <h1 id="background">Background</h1>
-<p>I wanted to do a quick review of setting up background jobs for a <a href="http://www.sinatrarb.com">Sinatra</a> app I have deployed with <a href="http://www.heroku.com">Heroku</a>. My web app serves as a music archive where I can upload songs for reference. Naturally, I wanted the site to be able to handle lossless audio formats so I could have acccess to both the lossless and lossy formats. This is where Resque comes in. <a href="https://github.com/resque/resque">Resque</a> is a Redis-backed Ruby library for creating job queues, and <a href="https://redis.io">Redis</a> is an open source (BSD licensed), in-memory data structure store, used as a database, cache and message broker. In my example, I set up a jobs queue for transcoding my lossless audio formats to mp3 using <a href="https://ffmpeg.org/about.html">ffmpeg</a>. In this post, I’ll show you how I got Sinatra, ffmpeg, Resque, and Redis working together in Heroku.</p>
-
-<h1 id="restful-music-archive">RESTful Music Archive</h1>
-<p>A RESTful music archive with Sinatra that handles lossless and lossy audio formats.</p>
-
-<p>Source: <a href="https://github.com/jescriba/music-archive">https://github.com/jescriba/music-archive</a></p>
-
-<h3 id="setting-up-resque">Setting up Resque</h3>
-
-<p>After installing and requiring the <code class="highlighter-rouge">resque</code> gem, I added some uploading logic to my route <code class="highlighter-rouge">POST</code> to <code class="highlighter-rouge">artists/:id/songs</code> that checks if the uploaded file format is of type <code class="highlighter-rouge">audio/x-aiff</code> among other lossless formats.</p>
-
-<p>References: <a href="https://github.com/jescriba/music-archive/blob/a4749dd6a8e89b309a594fbf1e64fcae8d2abc52/main.rb#L353">POST to artists/:id/songs</a>
-<a href="https://github.com/jescriba/music-archive/blob/a4749dd6a8e89b309a594fbf1e64fcae8d2abc52/main.rb#L766">Upload Song</a></p>
-
-<p>To queue up the transcoding logic, I call: <code class="highlighter-rouge">Resque.enqueue(SongTranscoder, upload_params)</code> after the initial upload. The rest of the logic lives inside my <code class="highlighter-rouge">SongTranscoder</code> and <code class="highlighter-rouge">Rakefile</code>. Resque will automatically call the class <code class="highlighter-rouge">perform</code> method. In this method, I download the lossless file from s3 then shell out to ffmpeg to transcode to mp3.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">perform</span><span class="p">(</span><span class="n">upload_params</span><span class="p">)</span>
-    <span class="n">s3</span> <span class="o">=</span> <span class="no">Aws</span><span class="o">::</span><span class="no">S3</span><span class="o">::</span><span class="no">Resource</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">region: </span><span class="s1">'us-west-1'</span><span class="p">)</span>
-
-    <span class="c1"># Ensure we are working w/ symbols</span>
-    <span class="n">upload_params</span> <span class="o">=</span> <span class="n">upload_params</span><span class="p">.</span><span class="nf">reduce</span><span class="p">({})</span> <span class="p">{</span> <span class="o">|</span><span class="n">memo</span><span class="p">,</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span><span class="o">|</span> <span class="n">memo</span><span class="p">.</span><span class="nf">merge</span><span class="p">({</span> <span class="n">k</span><span class="p">.</span><span class="nf">to_sym</span> <span class="o">=&gt;</span> <span class="n">v</span><span class="p">})</span> <span class="p">}</span>
-    <span class="n">extension</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">extname</span><span class="p">(</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:lossless_url</span><span class="p">])</span>
-    <span class="c1"># Download s3 lossless to local</span>
-    <span class="n">upload_params</span><span class="p">[</span><span class="ss">:tempfile_path</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"/app/tmp/temp</span><span class="si">#{</span><span class="n">extension</span><span class="si">}</span><span class="s2">"</span>
-    <span class="n">download_cmd_str</span> <span class="o">=</span> <span class="s2">"curl -o </span><span class="si">#{</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:tempfile_path</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:lossless_url</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
-    <span class="n">download_cmd</span> <span class="o">=</span>  <span class="sb">`</span><span class="si">#{</span><span class="n">download_cmd_str</span><span class="si">}</span><span class="sb">`</span>
-    <span class="n">tempfile</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:tempfile_path</span><span class="p">],</span> <span class="s2">"r"</span><span class="p">)</span>
-
-    <span class="c1"># transcode to V0 mp3</span>
-    <span class="n">temp_fi_dirname</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">dirname</span><span class="p">(</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:tempfile_path</span><span class="p">])</span>
-    <span class="n">lossy_file_path</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="n">temp_fi_dirname</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:song_name</span><span class="p">]</span><span class="si">}</span><span class="s2">.mp3"</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="s2">"ffmpeg -i </span><span class="si">#{</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:tempfile_path</span><span class="p">]</span><span class="si">}</span><span class="s2"> -codec:a libmp3lame -qscale:a 0 </span><span class="si">#{</span><span class="n">lossy_file_path</span><span class="si">}</span><span class="s2">"</span>
-    <span class="sb">`</span><span class="si">#{</span><span class="n">cmd</span><span class="si">}</span><span class="sb">`</span>
-    <span class="n">lossy_file</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">lossy_file_path</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
-
-    <span class="c1"># upload lossy</span>
-    <span class="n">lossy_object_path</span> <span class="o">=</span> <span class="n">upload_params</span><span class="p">[</span><span class="ss">:lossy_url</span><span class="p">].</span><span class="nf">sub</span><span class="p">(</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:base_url</span><span class="p">],</span> <span class="s2">""</span><span class="p">)</span>
-    <span class="n">s3_lossy_object</span> <span class="o">=</span> <span class="n">s3</span><span class="p">.</span><span class="nf">bucket</span><span class="p">(</span><span class="no">BUCKET</span><span class="p">).</span><span class="nf">object</span><span class="p">(</span><span class="n">lossy_object_path</span><span class="p">)</span>
-
-    <span class="c1"># upload</span>
-    <span class="n">s3_lossy_object</span><span class="p">.</span><span class="nf">upload_file</span><span class="p">(</span><span class="n">lossy_file</span><span class="p">,</span> <span class="ss">acl: </span><span class="s1">'public-read'</span><span class="p">)</span>
-    <span class="n">s3_lossy_object</span><span class="p">.</span><span class="nf">copy_to</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="n">s3_lossy_object</span><span class="p">.</span><span class="nf">bucket</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">s3_lossy_object</span><span class="p">.</span><span class="nf">key</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                            <span class="ss">:metadata_directive</span> <span class="o">=&gt;</span> <span class="s2">"REPLACE"</span><span class="p">,</span>
-                            <span class="ss">:acl</span> <span class="o">=&gt;</span> <span class="s2">"public-read"</span><span class="p">,</span>
-                            <span class="ss">:content_type</span> <span class="o">=&gt;</span> <span class="s2">"audio/mpeg"</span><span class="p">,</span>
-                            <span class="ss">:content_disposition</span> <span class="o">=&gt;</span> <span class="s2">"attachment; filename='</span><span class="si">#{</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:song_name</span><span class="p">]</span><span class="si">}</span><span class="s2">.mp3'"</span><span class="p">)</span>
-
-    <span class="c1"># Clean up lossy temp file</span>
-    <span class="no">FileUtils</span><span class="p">.</span><span class="nf">rm</span><span class="p">(</span><span class="n">lossy_file_path</span><span class="p">)</span>
-
-    <span class="c1"># Clean up - delete temp file</span>
-    <span class="no">FileUtils</span><span class="p">.</span><span class="nf">rm</span><span class="p">([</span><span class="n">upload_params</span><span class="p">[</span><span class="ss">:tempfile_path</span><span class="p">]])</span>
-  <span class="k">end</span>
-</code></pre></div></div>
-
-<p>References: <a href="https://github.com/jescriba/music-archive/blob/a4749dd6a8e89b309a594fbf1e64fcae8d2abc52/models/song_transcoder.rb">SongTranscoder</a></p>
-
-<p><strong>Setting up Resque Server</strong></p>
-
-<p>Resque comes with an easy to set up server that’ll be helpful for monitoring jobs.</p>
-
-<p>In my config.ru file, I map the <code class="highlighter-rouge">/resque</code> route to the Resque server:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'resque/server'</span>
-<span class="nb">require_relative</span> <span class="s1">'main'</span>
-<span class="nb">require_relative</span> <span class="s1">'globals'</span>
-
-<span class="vg">$stdout</span><span class="p">.</span><span class="nf">sync</span> <span class="o">=</span> <span class="kp">true</span>
-
-<span class="n">map</span> <span class="s2">"/resque"</span> <span class="k">do</span>
-  <span class="no">Resque</span><span class="o">::</span><span class="no">Server</span><span class="p">.</span><span class="nf">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Auth</span><span class="o">::</span><span class="no">Basic</span> <span class="k">do</span> <span class="o">|</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">|</span>
-    <span class="p">[</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="no">Globals</span><span class="o">::</span><span class="no">AUTH_USER</span><span class="p">,</span> <span class="no">Globals</span><span class="o">::</span><span class="no">AUTH_PASSWORD</span><span class="p">]</span>
-  <span class="k">end</span>
-
-  <span class="n">run</span> <span class="no">Resque</span><span class="o">::</span><span class="no">Server</span>
-<span class="k">end</span>
-
-<span class="n">map</span> <span class="s2">"/"</span> <span class="k">do</span>
-  <span class="n">run</span> <span class="no">Main</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<h3 id="configuring-heroku">Configuring Heroku</h3>
-
-<p><strong>Add Worker Dyno</strong></p>
-
-<p>Next I added a worker dyno for running the queue of jobs from the Rakefile:</p>
-
-<p><code class="highlighter-rouge">QUEUE=* RACK_ENV=production bundle exec rake resque:work</code></p>
-
-<p><strong>Add Redis To Go</strong></p>
-
-<p>In my <code class="highlighter-rouge">Rakefile</code> and <code class="highlighter-rouge">Globals</code>, I set up Resque per rack environment to use different redis servers:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s2">"RACK_ENV"</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'production'</span>
-  <span class="no">Resque</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="s1">'localhost:6379'</span>
-<span class="k">else</span>
-  <span class="n">uri</span> <span class="o">=</span> <span class="no">URI</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="no">ENV</span><span class="p">[</span><span class="s2">"REDISTOGO_URL"</span><span class="p">])</span>
-  <span class="no">Resque</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="n">uri</span><span class="p">.</span><span class="nf">host</span><span class="p">,</span> <span class="ss">:port</span> <span class="o">=&gt;</span> <span class="n">uri</span><span class="p">.</span><span class="nf">port</span><span class="p">,</span> <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="n">uri</span><span class="p">.</span><span class="nf">password</span><span class="p">)</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>Note: I set <code class="highlighter-rouge">REDISTOGO_URL</code> in my Heroku environment variables to that specified by the Heroku Redis To Go Add-On.</p>
-
-<p><strong>Add Ffmpeg Build Pack</strong></p>
-
-<p>Lastly, to get ffmpeg to actually work on Heroku, I added an ffmpeg <a href="https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git">build-pack</a>.</p>
-
-
-  </div>
-
-
-<!-- Pagination links -->
-<div class="pagination">
-  
-    <span class="previous">Previous</span>
-  
-  <span class="page_number ">Page: 1 of 3</span>
-  
-    <a href="/blog/page2" class="next">Next</a>
-  
-</div>
+  </div><a class="u-url" href="/2019/12/22/midibox.html" hidden></a>
+</article>
 
       </div>
     </main><footer class="site-footer h-card">
